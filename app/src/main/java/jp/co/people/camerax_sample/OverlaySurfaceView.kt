@@ -40,7 +40,7 @@ class OverlaySurfaceView(surfaceView: SurfaceView) : SurfaceView(surfaceView.con
             paint.apply {
                 style = Paint.Style.FILL
                 isAntiAlias = true
-                textSize = 77f
+                textSize = 50f
             }
             canvas?.drawText(
                 detectionObject.label + " " + "%,.2f".format(detectionObject.score * 100) + "%",

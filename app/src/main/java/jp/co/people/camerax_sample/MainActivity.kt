@@ -4,6 +4,7 @@ import android.content.res.AssetFileDescriptor
 import android.os.Bundle
 import android.util.Log
 import android.util.Size
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
@@ -11,6 +12,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import org.tensorflow.lite.Interpreter
+import org.w3c.dom.Text
 import java.io.*
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
@@ -23,15 +25,16 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var overlaySurfaceView: OverlaySurfaceView
+    private lateinit var textView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        overlaySurfaceView = OverlaySurfaceView(resultView)
+        textView = findViewById<TextView>(R.id.textview)
 
+        overlaySurfaceView = OverlaySurfaceView(resultView)
         cameraExecutor = Executors.newSingleThreadExecutor()
         setupCamera()
-
     }
 
 
@@ -43,7 +46,7 @@ class MainActivity : AppCompatActivity() {
             val preview = Preview.Builder()
                 .build()
                 .also { it.setSurfaceProvider(cameraView.surfaceProvider) }
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
             // TODO 物体検知
             val imageAnalyzer = ImageAnalysis.Builder()
@@ -62,6 +65,7 @@ class MainActivity : AppCompatActivity() {
                             detectedObjectList ->
                             // TODO 検出結果の表示
                             overlaySurfaceView.draw(detectedObjectList)
+                            displayLabel(detectedObjectList)
                         }
                     )
                 }
@@ -83,6 +87,14 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val MODEL_FILE_NAME = "detect.tflite"
         private const val LABEL_FILE_NAME = "labelmap.txt"
+    }
+
+    private fun displayLabel(detectedObjectList: List<DetectionObject>) {
+        detectedObjectList.mapIndexed { i, detectionObject ->
+            textView.text = detectionObject.label + " " + "%,.2f".format(detectionObject.score * 100) + "%"
+
+        }
+
     }
 
     private val yuvToRgbConverter: YuvToRgbConverter by lazy {
